@@ -1,2 +1,6 @@
 # SCZR-robot
 Projekt systemy sterujcego robotem manipulacyjnym
+kompilacja komendami:
+gcc -o zadawanie_pozycji zadawanie_pozycji.c -lrt -lm
+gcc -o kinematyka_odwrotna kinematyka_odwrotna.c -lrt -lm
+
