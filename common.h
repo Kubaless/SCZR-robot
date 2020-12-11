@@ -5,6 +5,11 @@
 #define MAX_SIZE    1024
 #define MSG_STOP    "exit"
 
+#define PI 3.14
+#define PROBKOWANIE 1000
+#define PRZESUNIECIE 1.4
+#define AMPLITUDA 0.3
+
 #define CHECK(x) \
     do { \
         if (!(x)) { \
@@ -18,7 +23,10 @@
 typedef struct Pozycja
 {
   long czasDostarczenia;
-  char pozycja[MAX_SIZE];
+  double x;
+  double y;
+  double z;
+  double t;
 } Pozycja;
 
 
