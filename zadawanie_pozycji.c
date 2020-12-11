@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
     /* open the mail queue */
     mq = mq_open(QUEUE_NAME, O_WRONLY);
-    //CHECK((mqd_t)-1 != mq);
+    CHECK((mqd_t)-1 != mq);
 
     printf("Starting producer process\n");
 
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         kat += ((2 * PI) / PROBKOWANIE);
         printf("y = %.3f    z = %.3f\n", pose.y, pose.z);
         CHECK(0 <= mq_send(mq, (const char*) &pose, sizeof(struct Pozycja), 0));
-        sleep(pose.z);
+        usleep(pose.t*1000);
 
     }
 
