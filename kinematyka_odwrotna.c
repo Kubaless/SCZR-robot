@@ -10,6 +10,13 @@
 
 #include "common.h"
 
+FILE * otworzPotokGnuplota() {
+    FILE * g_potok = popen( "gnuplot -persistent", "w" ); /* otwarcie potoku do zapisu */
+    return g_potok;
+}
+
+
+
 int main(int argc, char **argv)
 {
     /* delete messages with the same name */
@@ -17,7 +24,6 @@ int main(int argc, char **argv)
         fprintf(stdout, "Message queue %s removed from system.\n", QUEUE_NAME);
 
     mqd_t mq;
-    mqd_t mqm;
     struct mq_attr attr;
     int must_stop = 0;
 
@@ -28,6 +34,7 @@ int main(int argc, char **argv)
     attr.mq_curmsgs = 0;
 
     /* creating starting parameters */
+    char * commandsForGnuplot[] = {"set title \"pozycja koncowki\"", "splot 'data.temp'"};
     double poprzednia_pozycja[3] = {0, 0, 0};
     double czlon1, czlon2, dlugosc, alfa1, alfa2, alfa3, j1, j2, j3;
     double uchyb[3] = {0, 0, 0};
@@ -39,10 +46,8 @@ int main(int argc, char **argv)
     mq = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY, 0644, &attr);
     CHECK((mqd_t)-1 != mq);
 
-    /* open the mail queue */
-    mqm = mq_open(QUEUE_NAME_M, O_WRONLY);
-    //CHECK((mqd_t)-1 != mqm);
-
+    FILE * gnuplotPipe = otworzPotokGnuplota();
+    FILE * temp = fopen("data.temp", "w");
     Pozycja pose;
     Params par;
 
@@ -60,6 +65,7 @@ int main(int argc, char **argv)
         else
         {
             printf("Otrzymano: %.3f , %.3f, %.3f , %.3f ", pose.x, pose.y, pose.z, pose.t );
+            fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
             dlugosc = sqrt((pose.x * pose.x) + (pose.y * pose.y));
             alfa1 = atan2(pose.y, pose.x);
             alfa2 = acos(((czlon1 * czlon1) + (dlugosc * dlugosc) - (czlon2 * czlon2)) / (2 * czlon1 * dlugosc));
@@ -80,12 +86,8 @@ int main(int argc, char **argv)
             poprzednia_pozycja[0] = pose.x;
             poprzednia_pozycja[1] = pose.y;
             poprzednia_pozycja[2] = pose.z;
-            par.x = pose.x;
-            par.y = pose.y;
-            par.z = pose.z;
-            par.t = pose.t;
-            mq_send(mqm, (const char*) &par, sizeof(struct Params), 10);
-            //CHECK(0 <= mq_send(mqm, (const char*) &par, sizeof(struct Params), 10));
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[0]); 
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[1]); //Send commands to gnuplot one by one.
 
         }
     } while (!must_stop);
@@ -93,6 +95,5 @@ int main(int argc, char **argv)
     /* cleanup */
     CHECK((mqd_t)-1 != mq_close(mq));
     CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));
-    CHECK((mqd_t)-1 != mq_close(mqm));
     return 0;
 }
