@@ -36,7 +36,7 @@ int main(int argc, char **argv)
         kat += ((2 * PI) / PROBKOWANIE);
         printf("y = %.3f    z = %.3f\n", pose.y, pose.z);
         CHECK(0 <= mq_send(mq, (const char*) &pose, sizeof(struct Pozycja), 10));
-        usleep(pose.t*1000);
+        usleep(pose.t*10000);
 
     }
 

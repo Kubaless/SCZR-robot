@@ -34,11 +34,17 @@ int main(int argc, char **argv)
     attr.mq_curmsgs = 0;
 
     /* creating starting parameters */
-    char * commandsForGnuplot[] = {"set title \"pozycja koncowki\"", "splot 'data.temp'"};
+    char * commandsForGnuplot[] = {"set title \"pozycja koncowki\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2", };
     double poprzednia_pozycja[3] = {0, 0, 0};
     double czlon1, czlon2, dlugosc, alfa1, alfa2, alfa3, j1, j2, j3;
     double uchyb[3] = {0, 0, 0};
     double predkosc[3] = {0, 0, 0};
+    double joint0[3] = {0, 0, 0};
+    double joint1[3] = {0, 0, 0};
+    double joint2[3] = {0, 0, 0};
+    double joint3[3] = {0, 0, 0};
+    double joint4[3] = {0, 0, 0};
+    
     czlon1 = 0.5;
     czlon2 = 0.5;
 
@@ -47,7 +53,7 @@ int main(int argc, char **argv)
     CHECK((mqd_t)-1 != mq);
 
     FILE * gnuplotPipe = otworzPotokGnuplota();
-    FILE * temp = fopen("data.temp", "w");
+    //FILE * temp = fopen("data.temp", "w");
     Pozycja pose;
     Params par;
 
@@ -64,8 +70,9 @@ int main(int argc, char **argv)
         }
         else
         {
+            FILE * temp = fopen("data.temp", "w+");
             printf("Otrzymano: %.3f , %.3f, %.3f , %.3f ", pose.x, pose.y, pose.z, pose.t );
-            fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
+            //fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
             dlugosc = sqrt((pose.x * pose.x) + (pose.y * pose.y));
             alfa1 = atan2(pose.y, pose.x);
             alfa2 = acos(((czlon1 * czlon1) + (dlugosc * dlugosc) - (czlon2 * czlon2)) / (2 * czlon1 * dlugosc));
@@ -86,13 +93,42 @@ int main(int argc, char **argv)
             poprzednia_pozycja[0] = pose.x;
             poprzednia_pozycja[1] = pose.y;
             poprzednia_pozycja[2] = pose.z;
+            joint1[0]=czlon1*cos(predkosc[0]*pose.t);
+            joint1[1]=czlon1*sin(predkosc[0]*pose.t);
+            joint2[0]=czlon1*cos(predkosc[0]*pose.t)+czlon2*sin(predkosc[0]*pose.t-predkosc[1]*pose.t);
+            joint2[1]=czlon1*sin(predkosc[0]*pose.t)+czlon2*cos(predkosc[0]*pose.t-predkosc[1]*pose.t);
+            joint2[2]=1.4;
+            joint3[0]=joint2[0];
+            joint3[1]=joint2[1];
+            joint3[2]=1.7;
+            joint4[0]=joint2[0];
+            joint4[1]=joint2[1];
+            joint4[2]=1.1;
+/*          joint3[0]=pose.x;
+            joint3[1]=pose.y;
+            joint3[2]=pose.z+0.3;
+            joint4[0]=pose.x;
+            joint4[1]=pose.y;
+            joint4[2]=pose.z-0.3;*/
+
+            fprintf(temp, "%f %f %f %f %f %f \n%f %f %f %f %f %f \n%f %f %f %f %f %f \n",joint0[0], joint0[1],joint0[2], joint1[0],joint1[1],joint1[2], joint1[0], joint1[1],joint1[2], joint2[0], joint2[1],joint2[2], joint3[0], joint3[1],joint3[2],joint4[0], joint4[1],joint4[2]); //Write the data to a temporary file
+
+
+
             fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[0]); 
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[1]); //Send commands to gnuplot one by one.
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[1]);
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[2]);
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[3]);
+            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[4]);
+            fclose(temp);
+            usleep(1);
+
 
         }
     } while (!must_stop);
 
     /* cleanup */
+    pclose( gnuplotPipe );
     CHECK((mqd_t)-1 != mq_close(mq));
     CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));
     return 0;
