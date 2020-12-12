@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <mqueue.h>
 #include <math.h>
+#include <unistd.h>
 
 #include "common.h"
 
@@ -16,6 +17,7 @@ int main(int argc, char **argv)
         fprintf(stdout, "Message queue %s removed from system.\n", QUEUE_NAME);
 
     mqd_t mq;
+    mqd_t mqm;
     struct mq_attr attr;
     int must_stop = 0;
 
@@ -36,7 +38,13 @@ int main(int argc, char **argv)
     /* create the message queue */
     mq = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY, 0644, &attr);
     CHECK((mqd_t)-1 != mq);
+
+    /* open the mail queue */
+    mqm = mq_open(QUEUE_NAME_M, O_WRONLY);
+    //CHECK((mqd_t)-1 != mqm);
+
     Pozycja pose;
+    Params par;
 
     do {
         ssize_t bytes_read;
@@ -45,7 +53,7 @@ int main(int argc, char **argv)
         bytes_read = mq_receive(mq, (char *) &pose, sizeof(struct Pozycja), NULL);
         CHECK(bytes_read >= 0);
 
-        if (pose.y >= 0.99999)
+        if (pose.y <= -0.49999)
         {
             must_stop = 1;
         }
@@ -72,6 +80,12 @@ int main(int argc, char **argv)
             poprzednia_pozycja[0] = pose.x;
             poprzednia_pozycja[1] = pose.y;
             poprzednia_pozycja[2] = pose.z;
+            par.x = pose.x;
+            par.y = pose.y;
+            par.z = pose.z;
+            par.t = pose.t;
+            mq_send(mqm, (const char*) &par, sizeof(struct Params), 10);
+            //CHECK(0 <= mq_send(mqm, (const char*) &par, sizeof(struct Params), 10));
 
         }
     } while (!must_stop);
@@ -79,6 +93,6 @@ int main(int argc, char **argv)
     /* cleanup */
     CHECK((mqd_t)-1 != mq_close(mq));
     CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));
-
+    CHECK((mqd_t)-1 != mq_close(mqm));
     return 0;
 }

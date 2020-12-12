@@ -2,6 +2,7 @@
 #define COMMON_H_
 
 #define QUEUE_NAME  "/test_queue"
+#define QUEUE_NAME_M "/matlab_queue"
 #define MAX_SIZE    1024
 #define MSG_STOP    "exit"
 
@@ -28,6 +29,14 @@ typedef struct Pozycja
   double z;
   double t;
 } Pozycja;
+
+typedef struct Params
+{
+  double x;
+  double y;
+  double z;
+  double t;
+} Params;
 
 
 #endif /* #ifndef COMMON_H_ */
