@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         else
         {
             FILE * temp = fopen("data.temp", "w");
-            printf("Otrzymano: %.3f , %.3f, %.3f , %.3f ", pose.x, pose.y, pose.z, pose.t );
+            printf("Otrzymano: %.3f , %.3f, %.3f , %.3f \n", pose.x, pose.y, pose.z, pose.t );
             //fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
             dlugosc = sqrt((pose.x * pose.x) + (pose.y * pose.y));
             alfa1 = atan2(pose.y, pose.x);
@@ -92,24 +92,25 @@ int main(int argc, char **argv)
             predkosc[0] = (uchyb[0] / pose.t);
             predkosc[1] = (uchyb[1] / pose.t);
             predkosc[2] = (uchyb[2] / pose.t);
-            printf("alfy: 1 %.3f, 2 %.3f, 3 %.3f ", alfa1, alfa2, alfa3);
-            printf("predkosci: %.3f, %.3f, %.3f ", predkosc[0], predkosc[1], predkosc[2]);
-            printf("uchyby: %.3f, %.3f, %.3f ", uchyb[0], uchyb[1], uchyb[2]);
+            printf("alfy: 1 %.3f, 2 %.3f, 3 %.3f \n", alfa1, alfa2, alfa3);
+            printf("predkosci: %.3f, %.3f, %.3f \n", predkosc[0], predkosc[1], predkosc[2]);
+            printf("uchyby: %.3f, %.3f, %.3f \n", uchyb[0], uchyb[1], uchyb[2]);
             printf("parametry: j1 %.3f, j2 %.3f, j3 %.3f \n", j1, j2, j3);
-            poprzednia_pozycja[0] = pose.x;
-            poprzednia_pozycja[1] = pose.y;
-            poprzednia_pozycja[2] = pose.z;
+            poprzednia_pozycja[0] = j1;
+            poprzednia_pozycja[1] = j2;
+            poprzednia_pozycja[2] = j3;
             joint1[0]=czlon1*cos(predkosc[0]*pose.t);
-            joint1[1]=czlon1*sin(predkosc[0]*pose.t);
-            joint2[0]=czlon1*cos(predkosc[0]*pose.t)+czlon2*sin(predkosc[0]*pose.t-predkosc[1]*pose.t);
-            joint2[1]=czlon1*sin(predkosc[0]*pose.t)+czlon2*cos(predkosc[0]*pose.t-predkosc[1]*pose.t);
+            joint1[1]=czlon1*sin(j1);
+            joint2[0]=czlon1*cos(j1)+czlon2*cos(j1+j2);
+            joint2[1]=czlon1*sin(j1)+czlon2*sin(j1+j2);
             joint2[2]=czlon2/sqrt(2);
-            joint3[0]=joint2[0];
-            joint3[1]=joint2[1];
-            joint3[2]=pose.z-0.15;
+            joint3[0]=czlon1*cos(j1)+czlon2*cos(j1+j2);
+            joint3[1]=czlon1*sin(j1)+czlon2*sin(j1+j2);
+            joint3[2]=joint2[2]+j3-0.25;
             joint4[0]=0;
             joint4[1]=0;
-            joint4[2]=0.3;
+            joint4[2]=0.5;
+            printf("Koncowka: %.3f, %.3f, %.3f \n\n", joint3[0],joint3[1],joint3[2]+0.25);
             //joint3[0]=pose.x;
             //joint3[1]=pose.y;
             //joint3[2]=pose.z;
