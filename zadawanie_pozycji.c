@@ -40,19 +40,6 @@ int main(int argc, char **argv)
 
     }
 
-/*    do {
-        printf("> ");
-        fflush(stdout);
-
-        memset(pose.pozycja, 0, MAX_SIZE);
-        fgets(pose.pozycja, MAX_SIZE, stdin);
-        pose.x = 2;
-
-        /* send the message 
-        CHECK(0 <= mq_send(mq, (const char*) &pose, sizeof(struct Pozycja), 0));
-
-    } while (strncmp(pose.pozycja, MSG_STOP, strlen(MSG_STOP)));
-*/
     /* cleanup */
     CHECK((mqd_t)-1 != mq_close(mq));
 

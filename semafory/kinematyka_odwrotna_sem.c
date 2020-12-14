@@ -1,39 +1,55 @@
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <errno.h>
-#include <mqueue.h>
-#include <math.h>
+#include <stdint.h>
+#include <sys/sem.h>
+#include <sys/shm.h>
 #include <unistd.h>
-
-#include "common.h"
-
+#include <stdlib.h>
+#include <sys/time.h>
+#include <math.h>
+#include "../common.h"
 #define NUM_COMMANDS 7
 
-FILE * otworzPotokGnuplota() {
+// semafor --
+void sem_down(int semid, int semnum)
+{
+    struct sembuf buf;
+    buf.sem_num = semnum;
+    buf.sem_op = -1;
+    buf.sem_flg = 0;
+    if (semop(semid, &buf, 1) == -1)
+    {
+        printf("SEM DOWN ERROR");
+        exit(-1);
+    }
+}
+
+// semafor ++
+void sem_up(int semid, int semnum)
+{
+    struct sembuf buf;
+    buf.sem_num = semnum;
+    buf.sem_op = 1;
+    buf.sem_flg = 0;
+    if (semop(semid, &buf, 1) == -1)
+    {
+        printf("SEM UP ERROR");
+        exit(-1);
+    }
+}
+
+FILE * otworzPotokGnuplota() 
+{
     FILE * g_potok = popen( "gnuplot -persistent", "w" ); /* otwarcie potoku do zapisu */
     return g_potok;
 }
 
-int main(int argc, char **argv)
+#define EMPTYID 1
+#define MUTEXID 0
+#define FULLID 2
+
+int main(int argc,char * argv)
 {
-    /* delete messages with the same name */
-    if(mq_unlink(QUEUE_NAME) == 0)
-        fprintf(stdout, "Message queue %s removed from system.\n", QUEUE_NAME);
-
-    mqd_t mq;
-    struct mq_attr attr;
-    int must_stop = 0;
-
-    /* initialize the queue attributes */
-    attr.mq_flags = 0;
-    attr.mq_maxmsg = 10;
-    attr.mq_msgsize = sizeof(Pozycja);
-    attr.mq_curmsgs = 0;
-
-    /* creating starting parameters */
+	/* creating starting parameters */
     // !!! przy zmianie wyswietlania nalezy zmienic odpowiadajaca ilosc komend NUM_COMANDS dla plaszczyzn NUM_COMANDS = 5!!!
 
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi yz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 2:3:5:6 with vectors nohead lw 2"};
@@ -55,43 +71,44 @@ int main(int argc, char **argv)
     czlon1 = 0.5;
     czlon2 = 0.5;
 
-    /* create the message queue */
-    mq = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY, 0644, &attr);
-    CHECK((mqd_t)-1 != mq);
-
     FILE * gnuplotPipe = otworzPotokGnuplota();
-    //FILE * temp = fopen("data.temp", "w");
-    Pozycja pose;
+	Pozycja * pose;
+	int message_Id;
+	int semId;
+	//pamiec
+	message_Id = shmget(2137 , sizeof(Pozycja), 0666);
+	pose = (Pozycja*)shmat(message_Id,NULL,0);
+	//semafor
+	semId = semget(2137, 3, 0600);
+	int i =0;
+	int must_stop = 0;
 
-    do {
-        ssize_t bytes_read;
+	do {
+        sem_down(semId,FULLID);
+		sem_down(semId,MUTEXID);
 
-        /* receive the message */
-        bytes_read = mq_receive(mq, (char *) &pose, sizeof(struct Pozycja), NULL);
-        CHECK(bytes_read >= 0);
-
-        if (pose.y <= -0.49999)
+        if (pose->y <= -0.49999)
         {
             must_stop = 1;
         }
         else
         {
             FILE * temp = fopen("data.temp", "w");
-            printf("Otrzymano: %.3f , %.3f, %.3f , %.3f \n", pose.x, pose.y, pose.z, pose.t );
-            //fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
-            dlugosc = sqrt((pose.x * pose.x) + (pose.y * pose.y));
-            alfa1 = atan2(pose.y, pose.x);
+            printf("Otrzymano: %.3f , %.3f, %.3f , %.3f \n", pose->x, pose->y, pose->z, pose->t );
+            //fprintf(temp, "%f %f %f \n", pose->x, pose->y, pose->z); //Write the data to a temporary file
+            dlugosc = sqrt((pose->x * pose->x) + (pose->y * pose->y));
+            alfa1 = atan2(pose->y, pose->x);
             alfa2 = acos(((czlon1 * czlon1) + (dlugosc * dlugosc) - (czlon2 * czlon2)) / (2 * czlon1 * dlugosc));
             alfa3 = acos(((czlon1 * czlon1) - (dlugosc * dlugosc) + (czlon2 * czlon2)) / (2 * czlon1 * czlon2));
             j1 = alfa1 + alfa2;
             j2 = alfa3 - PI;
-            j3 = pose.z - PRZESUNIECIE;
+            j3 = pose->z - PRZESUNIECIE;
             uchyb[0] = (j1 - poprzednia_pozycja[0]);
             uchyb[1] = (j2 - poprzednia_pozycja[1]);
             uchyb[2] = (j3 - poprzednia_pozycja[2]);
-            predkosc[0] = (uchyb[0] / pose.t);
-            predkosc[1] = (uchyb[1] / pose.t);
-            predkosc[2] = (uchyb[2] / pose.t);
+            predkosc[0] = (uchyb[0] / pose->t);
+            predkosc[1] = (uchyb[1] / pose->t);
+            predkosc[2] = (uchyb[2] / pose->t);
             printf("alfy: 1 %.3f, 2 %.3f, 3 %.3f \n", alfa1, alfa2, alfa3);
             printf("predkosci: %.3f, %.3f, %.3f \n", predkosc[0], predkosc[1], predkosc[2]);
             printf("uchyby: %.3f, %.3f, %.3f \n", uchyb[0], uchyb[1], uchyb[2]);
@@ -111,10 +128,10 @@ int main(int argc, char **argv)
             joint4[1]=0;
             joint4[2]=0.3;
             printf("Koncowka: %.3f, %.3f, %.3f \n\n", joint3[0],joint3[1],joint3[2]+0.15);
-            //joint3[0]=pose.x;
-            //joint3[1]=pose.y;
-            //joint3[2]=pose.z;
-            //joint4[0]=pose.x;
+            //joint3[0]=pose->x;
+            //joint3[1]=pose->y;
+            //joint3[2]=pose->z;
+            //joint4[0]=pose->x;
             //joint4[1]=0;
             //joint4[2]=0.4;
 
@@ -126,12 +143,12 @@ int main(int argc, char **argv)
                 fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[i]); //Send commands to gnuplot one by one.
             }
 
+            sem_up(semId,MUTEXID);
+			sem_up(semId,EMPTYID);
+
         }
     } while (!must_stop);
 
-    /* cleanup */
-    pclose( gnuplotPipe );
-    CHECK((mqd_t)-1 != mq_close(mq));
-    CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));
-    return 0;
+return 0;
+
 }

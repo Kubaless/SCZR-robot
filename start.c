@@ -15,7 +15,7 @@ int main(){
       exit(EXIT_FAILURE); 
    } 
    else if (pid1 == 0){  
-      char * argv_list[] = {"kinematyka_odwrotna","-lart","/home/student/SCZR-robot/",NULL}; 
+      char * argv_list[] = {"kinematyka_odwrotna","-lart","/home/SCZR-robot/SCZR-robot/",NULL}; 
   
       execv("kinematyka_odwrotna",argv_list); 
       exit(0);
@@ -28,7 +28,7 @@ int main(){
       exit(EXIT_FAILURE); 
    } 
    else if (pid2 == 0){  
-      char * argv_list[] = {"zadawanie_pozycji","-lart","/home/student/SCZR-robot/",NULL}; 
+      char * argv_list[] = {"zadawanie_pozycji","-lart","/home/SCZR-robot/SCZR-robot/",NULL}; 
   
       execv("zadawanie_pozycji",argv_list); 
       exit(0);
