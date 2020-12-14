@@ -106,11 +106,11 @@ int main(int argc, char **argv)
             joint2[2]=czlon2/sqrt(2);
             joint3[0]=czlon1*cos(j1)+czlon2*cos(j1+j2);
             joint3[1]=czlon1*sin(j1)+czlon2*sin(j1+j2);
-            joint3[2]=joint2[2]+j3-0.25;
+            joint3[2]=joint2[2]+j3-0.2;
             joint4[0]=0;
             joint4[1]=0;
-            joint4[2]=0.5;
-            printf("Koncowka: %.3f, %.3f, %.3f \n\n", joint3[0],joint3[1],joint3[2]+0.25);
+            joint4[2]=0.4;
+            printf("Koncowka: %.3f, %.3f, %.3f \n\n", joint3[0],joint3[1],joint3[2]+0.2);
             //joint3[0]=pose.x;
             //joint3[1]=pose.y;
             //joint3[2]=pose.z;
