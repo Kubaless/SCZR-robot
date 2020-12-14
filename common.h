@@ -9,7 +9,7 @@
 #define PI 3.14
 #define PROBKOWANIE 1000
 #define PRZESUNIECIE 0.3535
-#define AMPLITUDA 0.2
+#define AMPLITUDA 0.15
 
 #define CHECK(x) \
     do { \

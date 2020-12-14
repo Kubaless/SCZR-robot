@@ -10,7 +10,7 @@
 
 #include "common.h"
 
-#define NUM_COMMANDS 5
+#define NUM_COMMANDS 7
 
 FILE * otworzPotokGnuplota() {
     FILE * g_potok = popen( "gnuplot -persistent", "w" ); /* otwarcie potoku do zapisu */
@@ -34,9 +34,10 @@ int main(int argc, char **argv)
     attr.mq_curmsgs = 0;
 
     /* creating starting parameters */
+    // !!! przy zmianie wyswietlania nalezy zmienic odpowiadajaca ilosc komend NUM_COMANDS !!!
 
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi yz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 2:3:5:6 with vectors nohead lw 2"};
-    char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
+    char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:1]","set xyplane 0","set grid" , "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:3:4:6 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xy\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:2:4:5 with vectors nohead lw 2"};
 
@@ -103,12 +104,12 @@ int main(int argc, char **argv)
             joint2[0]=czlon1*cos(predkosc[0]*pose.t)+czlon2*sin(predkosc[0]*pose.t-predkosc[1]*pose.t);
             joint2[1]=czlon1*sin(predkosc[0]*pose.t)+czlon2*cos(predkosc[0]*pose.t-predkosc[1]*pose.t);
             joint2[2]=czlon2/sqrt(2);
-            joint3[0]=pose.x;
-            joint3[1]=pose.y;
-            joint3[2]=pose.z-0.25;
+            joint3[0]=joint2[0];
+            joint3[1]=joint2[1];
+            joint3[2]=pose.z-0.15;
             joint4[0]=0;
             joint4[1]=0;
-            joint4[2]=0.45;
+            joint4[2]=0.3;
             //joint3[0]=pose.x;
             //joint3[1]=pose.y;
             //joint3[2]=pose.z;
