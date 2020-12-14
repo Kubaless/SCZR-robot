@@ -8,8 +8,8 @@
 
 #define PI 3.14
 #define PROBKOWANIE 1000
-#define PRZESUNIECIE 1.4
-#define AMPLITUDA 0.3
+#define PRZESUNIECIE 0.3535
+#define AMPLITUDA 0.2
 
 #define CHECK(x) \
     do { \

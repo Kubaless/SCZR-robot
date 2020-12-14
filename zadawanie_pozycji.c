@@ -32,7 +32,7 @@ int main(int argc, char **argv)
     for (i; i < PROBKOWANIE; i++)
     {
         pose.y -= 0.001;
-        pose.z = ((AMPLITUDA * sin(kat)) + PRZESUNIECIE);
+        pose.z = ((AMPLITUDA * sin(2*kat)) + PRZESUNIECIE);
         kat += ((2 * PI) / PROBKOWANIE);
         printf("y = %.3f    z = %.3f\n", pose.y, pose.z);
         CHECK(0 <= mq_send(mq, (const char*) &pose, sizeof(struct Pozycja), 10));
