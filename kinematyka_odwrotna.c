@@ -99,7 +99,7 @@ int main(int argc, char **argv)
             poprzednia_pozycja[0] = j1;
             poprzednia_pozycja[1] = j2;
             poprzednia_pozycja[2] = j3;
-            joint1[0]=czlon1*cos(predkosc[0]*pose.t);
+            joint1[0]=czlon1*cos(j1);
             joint1[1]=czlon1*sin(j1);
             joint2[0]=czlon1*cos(j1)+czlon2*cos(j1+j2);
             joint2[1]=czlon1*sin(j1)+czlon2*sin(j1+j2);
