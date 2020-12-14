@@ -37,7 +37,7 @@ int main(int argc, char **argv)
     // !!! przy zmianie wyswietlania nalezy zmienic odpowiadajaca ilosc komend NUM_COMANDS dla plaszczyzn NUM_COMANDS = 5!!!
 
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi yz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 2:3:5:6 with vectors nohead lw 2"};
-    char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:1]","set xyplane 0","set grid" , "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
+    char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-1:1]","set yrange [-1:1]","set zrange [0:1]","set xyplane 0","set grid" , "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:3:4:6 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xy\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:2:4:5 with vectors nohead lw 2"};
 
