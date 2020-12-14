@@ -20,7 +20,7 @@ int main(){
       execv("kinematyka_odwrotna",argv_list); 
       exit(0);
    }
-
+   usleep(1000);
    pid2 = fork(); 
   
    if (pid2 == -1){ 
