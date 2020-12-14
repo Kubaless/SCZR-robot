@@ -10,12 +10,12 @@
 
 #include "common.h"
 
+#define NUM_COMMANDS 5
+
 FILE * otworzPotokGnuplota() {
     FILE * g_potok = popen( "gnuplot -persistent", "w" ); /* otwarcie potoku do zapisu */
     return g_potok;
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -34,8 +34,12 @@ int main(int argc, char **argv)
     attr.mq_curmsgs = 0;
 
     /* creating starting parameters */
-    char * commandsForGnuplot[] = {"set title \"pozycja koncowki\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]","set view equal xyz","splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2", };
-    //char * commandsForGnuplot[] = {"set title \"pozycja koncowki\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:2:3:4 with vectors nohead lw 2", };
+
+    //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi yz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 2:3:5:6 with vectors nohead lw 2"};
+    char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
+    //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:3:4:6 with vectors nohead lw 2"};
+    //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xy\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:2:4:5 with vectors nohead lw 2"};
+
     double poprzednia_pozycja[3] = {0, 0, 0};
     double czlon1, czlon2, dlugosc, alfa1, alfa2, alfa3, j1, j2, j3;
     double uchyb[3] = {0, 0, 0};
@@ -99,12 +103,12 @@ int main(int argc, char **argv)
             joint2[0]=czlon1*cos(predkosc[0]*pose.t)+czlon2*sin(predkosc[0]*pose.t-predkosc[1]*pose.t);
             joint2[1]=czlon1*sin(predkosc[0]*pose.t)+czlon2*cos(predkosc[0]*pose.t-predkosc[1]*pose.t);
             joint2[2]=czlon2/sqrt(2);
-            joint3[0]=joint2[0];
-            joint3[1]=joint2[1];
-            joint3[2]=pose.z-0.2;
+            joint3[0]=pose.x;
+            joint3[1]=pose.y;
+            joint3[2]=pose.z-0.25;
             joint4[0]=0;
             joint4[1]=0;
-            joint4[2]=0.4;
+            joint4[2]=0.45;
             //joint3[0]=pose.x;
             //joint3[1]=pose.y;
             //joint3[2]=pose.z;
@@ -112,20 +116,13 @@ int main(int argc, char **argv)
             //joint4[1]=0;
             //joint4[2]=0.4;
 
-            fprintf(temp, "%f %f %f %f %f %f\n%f %f %f %f %f %f\n%f %f %f %f %f %f\n", joint0[0], joint0[1],joint0[2], joint1[0], joint1[1], joint1[2], joint1[0], joint1[1], joint1[2], joint2[0]-joint1[0], joint2[1]-joint1[1], joint2[2]-joint1[2], joint3[0], joint3[1], joint3[2], joint4[0], joint4[1], joint4[2]);
-            //fprintf(temp, "%f %f %f %f \n%f %f %f %f \n%f %f %f %f \n",joint0[1], joint0[2], joint1[1],joint1[2], joint1[1], joint1[2], joint2[1],joint2[2], joint3[1], joint3[2],joint4[1], joint4[2]); //Write the data to a temporary file
+            fprintf(temp, "%f %f %f %f %f %f\n%f %f %f %f %f %f\n%f %f %f %f %f %f\n", joint0[0], joint0[1],joint0[2], joint1[0], joint1[1], joint1[2], joint1[0], joint1[1], joint1[2], joint2[0]-joint1[0], joint2[1]-joint1[1], joint2[2]-joint1[2], joint3[0], joint3[1], joint3[2], joint4[0], joint4[1], joint4[2]); //Write data to data file
             fclose(temp);
 
-
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[0]); 
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[1]);
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[2]);
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[3]);
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[4]);
-            fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[5]);
-            //fclose(temp);
-            //usleep(1);
-
+            for (int i=0; i < NUM_COMMANDS; i++)
+            {
+                fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[i]); //Send commands to gnuplot one by one.
+            }
 
         }
     } while (!must_stop);
