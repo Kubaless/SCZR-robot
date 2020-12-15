@@ -48,8 +48,17 @@ int main()
 	int message_Id;
 	int semId;
 	//pamiec
-	message_Id = shmget(2137 , sizeof(Pozycja), 0666);
-	pose = (Pozycja*)shmat(message_Id,NULL,0);
+	//message_Id = shmget(2137 , sizeof(Pozycja), 0666);
+	//pose = (Pozycja*)shmat(message_Id,NULL,0);
+
+    message_Id = shmget(2137 , sizeof(Pozycja), IPC_CREAT|0666);
+    pose = (Pozycja*)shmat(message_Id,NULL,0);
+    //semafory
+    semId = semget(2137, 3, IPC_CREAT|IPC_EXCL|0600);
+    semctl(semId, 0, SETVAL, (int)1); //mutex 
+    semctl(semId, 1, SETVAL, (int)0); //empty czytanie z pustej
+    semctl(semId, 2, SETVAL, (int)1); //pisanie do pelnej full 
+
 	//semafor
 	semId = semget(2137, 3, 0600);
     double kat = 0.0;
@@ -75,5 +84,11 @@ int main()
 
         usleep(pose->t*10000);
     }
-return 0;
+
+    shmctl(message_Id,IPC_RMID,NULL);
+    semctl(semId, 0, IPC_RMID);
+    semctl(semId, 1, IPC_RMID);
+    semctl(semId, 2, IPC_RMID);
+
+    return 0;
 }
