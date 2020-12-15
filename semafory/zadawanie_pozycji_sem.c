@@ -54,19 +54,17 @@ int main()
 	semId = semget(2137, 3, 0600);
     double kat = 0.0;
     int i = 0;
-    //pose->x = 0.7;
-    //pose->y = 0.5;
-    //pose->z = 0.0;
-   //pose->t = 0.5;
+    pose->x = 0.7;
+    pose->y = 0.5;
+    pose->z = 0.0;
+    pose->t = 0.5;
     for (i; i < PROBKOWANIE; i++)
     {
         sem_down(semId,EMPTYID);
         sem_down(semId,MUTEXID);
 
-        pose->x = 0.7;
         pose->y -= 0.001;
         pose->z = ((AMPLITUDA * sin(2*kat)) + PRZESUNIECIE);
-        pose->t = 0.5;
         kat += ((2 * PI) / PROBKOWANIE);
         printf("y = %.3f    z = %.3f\n", pose->y, pose->z);
 
