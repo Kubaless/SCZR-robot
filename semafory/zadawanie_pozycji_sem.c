@@ -13,7 +13,7 @@
 #define FULLID 2
 
 
-// semafor --
+/* Funkcja odpowiadajaca za zamkniecie semafora*/
 void sem_down(int semid, int semnum)
 {
     struct sembuf buf;
@@ -27,7 +27,7 @@ void sem_down(int semid, int semnum)
     }
 }
 
-// semafor ++
+/* Funkcja odpowiadajaca za otwarcie semafora*/
 void sem_up(int semid, int semnum)
 {
     struct sembuf buf;
@@ -42,24 +42,20 @@ void sem_up(int semid, int semnum)
 }
 
 int main()
-{
+{   
+    /* Inicjacja zmiennych poczatkowych */
 	Pozycja * pose;
 	
 	int message_Id;
 	int semId;
-	//pamiec
-	//message_Id = shmget(2137 , sizeof(Pozycja), 0666);
-	//pose = (Pozycja*)shmat(message_Id,NULL,0);
 
     message_Id = shmget(2137 , sizeof(Pozycja), IPC_CREAT|0666);
     pose = (Pozycja*)shmat(message_Id,NULL,0);
-    //semafory
     semId = semget(2137, 3, IPC_CREAT|IPC_EXCL|0600);
     semctl(semId, 0, SETVAL, (int)1); //mutex 
     semctl(semId, 1, SETVAL, (int)0); //empty czytanie z pustej
-    semctl(semId, 2, SETVAL, (int)1); //pisanie do pelnej full 
+    semctl(semId, 2, SETVAL, (int)1); //pisanie do pelnej
 
-	//semafor
 	semId = semget(2137, 3, 0600);
     double kat = 0.0;
     int i = 0;
@@ -69,15 +65,17 @@ int main()
     pose->t = 0.5;
     for (i; i < PROBKOWANIE; i++)
     {
+        /* Zamkniecie odpowiednich semaforow*/
         sem_down(semId,EMPTYID);
         sem_down(semId,MUTEXID);
 
+        /* Zadawanie pozycji koncowki */
         pose->y -= 0.001;
         pose->z = ((AMPLITUDA * sin(2*kat)) + PRZESUNIECIE);
         kat += ((2 * PI) / PROBKOWANIE);
         printf("y = %.3f    z = %.3f\n", pose->y, pose->z);
 
-        //tu wysylanie
+        /* wyslanie pozycji koncowki w petli */
 
         sem_up(semId,MUTEXID);
         sem_up(semId,FULLID);
@@ -85,6 +83,7 @@ int main()
         usleep(pose->t*10000);
     }
 
+    /* Czyszczenie */
     shmctl(message_Id,IPC_RMID,NULL);
     semctl(semId, 0, IPC_RMID);
     semctl(semId, 1, IPC_RMID);

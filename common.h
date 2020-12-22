@@ -19,10 +19,9 @@
         } \
     } while (0) \
 
-    /* init struct Pozycja */
+    /* inicjacja struktury Pozycja */
 typedef struct Pozycja
 {
-  long czasDostarczenia;
   double x;
   double y;
   double z;

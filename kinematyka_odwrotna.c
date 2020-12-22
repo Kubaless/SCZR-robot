@@ -17,9 +17,10 @@ FILE * otworzPotokGnuplota() {
     return g_potok;
 }
 
+
 int main(int argc, char **argv)
 {
-    /* delete messages with the same name */
+    /* usuniecie kolejki z ta sama nazwa */
     if(mq_unlink(QUEUE_NAME) == 0)
         fprintf(stdout, "Message queue %s removed from system.\n", QUEUE_NAME);
 
@@ -27,13 +28,13 @@ int main(int argc, char **argv)
     struct mq_attr attr;
     int must_stop = 0;
 
-    /* initialize the queue attributes */
+    /* inicjacja atrybutow kolejki */
     attr.mq_flags = 0;
     attr.mq_maxmsg = 10;
     attr.mq_msgsize = sizeof(Pozycja);
     attr.mq_curmsgs = 0;
 
-    /* creating starting parameters */
+    /* inicjacja parametrow poczatkowych */
     // !!! przy zmianie wyswietlania nalezy zmienic odpowiadajaca ilosc komend NUM_COMANDS dla plaszczyzn NUM_COMANDS = 5!!!
 
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi yz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 2:3:5:6 with vectors nohead lw 2"};
@@ -41,6 +42,7 @@ int main(int argc, char **argv)
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xz\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:3:4:6 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota w osi xy\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:2]", "plot 'data.temp' using 1:2:4:5 with vectors nohead lw 2"};
     //char * commandsForGnuplot[] = {"set term wxt title 'Gazebo'","set title \"Wizualizacja robota 3D\"","set xrange [-2:2]","set yrange [-2:2]","set zrange [0:1]","set xyplane 0","set grid" , "splot 'data.temp' using 1:2:3:4:5:6 with vectors nohead lw 2"};
+    //char * commandsForGnuplot[] = {"set title \"Wizualizacja robota 3D\"","set xrange [-1:1]","set yrange [-1:1]","set zrange [0:1]","set xyplane 0","set grid" , "splot 'data.temp'"};
 
     double poprzednia_pozycja[3] = {0, 0, 0};
     double czlon1, czlon2, dlugosc, alfa1, alfa2, alfa3, j1, j2, j3;
@@ -55,7 +57,7 @@ int main(int argc, char **argv)
     czlon1 = 0.5;
     czlon2 = 0.5;
 
-    /* create the message queue */
+    /* otworzenie kolejki wiadomosci */
     mq = mq_open(QUEUE_NAME, O_CREAT | O_RDONLY, 0644, &attr);
     CHECK((mqd_t)-1 != mq);
 
@@ -66,7 +68,7 @@ int main(int argc, char **argv)
     do {
         ssize_t bytes_read;
 
-        /* receive the message */
+        /* odebranie wiadomosci  */
         bytes_read = mq_receive(mq, (char *) &pose, sizeof(struct Pozycja), NULL);
         CHECK(bytes_read >= 0);
 
@@ -76,9 +78,10 @@ int main(int argc, char **argv)
         }
         else
         {
+            /* Otwarcie pliku do zapisu i obliczenie konematyki odwrotnej */
             FILE * temp = fopen("data.temp", "w");
             printf("Otrzymano: %.3f , %.3f, %.3f , %.3f \n", pose.x, pose.y, pose.z, pose.t );
-            //fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); //Write the data to a temporary file
+            //fprintf(temp, "%f %f %f \n", pose.x, pose.y, pose.z); 
             dlugosc = sqrt((pose.x * pose.x) + (pose.y * pose.y));
             alfa1 = atan2(pose.y, pose.x);
             alfa2 = acos(((czlon1 * czlon1) + (dlugosc * dlugosc) - (czlon2 * czlon2)) / (2 * czlon1 * dlugosc));
@@ -99,6 +102,7 @@ int main(int argc, char **argv)
             poprzednia_pozycja[0] = j1;
             poprzednia_pozycja[1] = j2;
             poprzednia_pozycja[2] = j3;
+            /* Wyznaczenie pozycji czlonow i zapisanie ich w pliku */
             joint1[0]=czlon1*cos(j1);
             joint1[1]=czlon1*sin(j1);
             joint2[0]=czlon1*cos(j1)+czlon2*cos(j1+j2);
@@ -121,15 +125,15 @@ int main(int argc, char **argv)
             fprintf(temp, "%f %f %f %f %f %f\n%f %f %f %f %f %f\n%f %f %f %f %f %f\n", joint0[0], joint0[1],joint0[2], joint1[0], joint1[1], joint1[2], joint1[0], joint1[1], joint1[2], joint2[0]-joint1[0], joint2[1]-joint1[1], joint2[2]-joint1[2], joint3[0], joint3[1], joint3[2], joint4[0], joint4[1], joint4[2]); //Write data to data file
             fclose(temp);
 
+            /* Wyslanie komend do gnuplota*/
             for (int i=0; i < NUM_COMMANDS; i++)
             {
-                fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[i]); //Send commands to gnuplot one by one.
-            }
+                fprintf(gnuplotPipe, "%s \n", commandsForGnuplot[i]);
 
         }
     } while (!must_stop);
 
-    /* cleanup */
+    /* czyszczenie */
     pclose( gnuplotPipe );
     CHECK((mqd_t)-1 != mq_close(mq));
     CHECK((mqd_t)-1 != mq_unlink(QUEUE_NAME));

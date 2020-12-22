@@ -12,10 +12,10 @@
 
 int main(int argc, char **argv)
 {
-    /* init mail queue */
+    /* inicjacja kolejki */
     mqd_t mq;
 
-    /* open the mail queue */
+    /* otwarcie kolejki */
     mq = mq_open(QUEUE_NAME, O_WRONLY);
     CHECK((mqd_t)-1 != mq);
 
@@ -23,12 +23,14 @@ int main(int argc, char **argv)
 
     Pozycja pose;
 
+    /*Inicjacja zmiennych*/
     double kat = 0.0;
     int i = 0;
     pose.x = 0.7;
     pose.y = 0.5;
     pose.z = 0.0;
     pose.t = 0.5;
+    /*Wysylanie pozycji koncowki jako sinusoidy */
     for (i; i < PROBKOWANIE; i++)
     {
         pose.y -= 0.001;
@@ -40,7 +42,7 @@ int main(int argc, char **argv)
 
     }
 
-    /* cleanup */
+    /* zamkniecie kolejki */
     CHECK((mqd_t)-1 != mq_close(mq));
 
     return 0;
